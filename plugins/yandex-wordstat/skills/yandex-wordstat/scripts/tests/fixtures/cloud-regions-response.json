@@ -1,0 +1,6 @@
+{
+  "results": [
+    {"region": "213", "count": "5000", "share": 0.5, "affinityIndex": "120"},
+    {"region": "2", "count": "2000", "share": 0.2, "affinityIndex": "110"}
+  ]
+}

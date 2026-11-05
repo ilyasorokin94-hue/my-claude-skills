@@ -1,0 +1,8 @@
+{
+  "name": "yandex-search-api",
+  "version": "1.1.1",
+  "description": "Yandex Search API v2: content-rich page extracts (smart snippets) plus classic SERP parsing (sync + async)",
+  "author": {
+    "name": "Polyakov"
+  }
+}

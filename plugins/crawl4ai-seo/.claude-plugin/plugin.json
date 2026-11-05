@@ -1,0 +1,8 @@
+{
+  "name": "crawl4ai-seo",
+  "version": "1.0.0",
+  "description": "SEO site crawler: page inventory, on-page audit, internal linking analysis, navigation audit, competitor research via Crawl4AI",
+  "author": {
+    "name": "Polyakov"
+  }
+}

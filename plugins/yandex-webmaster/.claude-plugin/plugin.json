@@ -1,0 +1,8 @@
+{
+  "name": "yandex-webmaster",
+  "version": "1.0.0",
+  "description": "Yandex Webmaster API: site management, search queries, indexing, sitemaps, recrawl, links, feeds.",
+  "author": {
+    "name": "Polyakov"
+  }
+}
