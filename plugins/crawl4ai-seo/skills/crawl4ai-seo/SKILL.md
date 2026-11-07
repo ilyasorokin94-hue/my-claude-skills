@@ -59,39 +59,44 @@ SEO-краулер для аудита сайтов и конкурентног�
 
 ### Основной pipeline
 
+`seed_urls.py` с `--domain` сам создаёт job и печатает `Job: <job_id>`; отдельного `init_job.py` в этой сборке нет. Как запускать crawl в облачной среде — раздел «Где запускать crawl» ниже.
+
 ```bash
-# 1. Создать job
-python3 scripts/init_job.py --domain https://example.com --project client-a --label full-audit
+# 1. Создать job и собрать seed URL из sitemap/robots
+python3 scripts/seed_urls.py --domain https://example.com --project client-a --label full-audit
 
-# 2. Собрать seed URL из sitemap/robots
-python3 scripts/seed_urls.py --job-id <job_id>
+# 2. Запустить crawl (облачная среда: готовое окружение .venv)
+.venv/bin/python scripts/crawl_batch.py --job-id <job_id>
 
-# 3. Запустить crawl
-uv run --script scripts/crawl_batch.py --job-id <job_id>
-
-# 4. Построить навигационный отчёт
+# 3. Построить навигационный отчёт
 python3 scripts/build_navigation_report.py \
   --seed-job-id <seed_job_id> \
   --crawl-job-id <crawl_job_id> \
   --report-dir reports/<project>/<label>
 
-# 5. Сравнить страницы
+# 4. Сравнить страницы
 python3 scripts/compare_pages.py --job-id <job_id>
 ```
 
-### Быстрый вариант (без отдельного init)
+### Быстрый вариант
 
 ```bash
 python3 scripts/seed_urls.py --domain https://example.com --project client-a --label quick-check
-uv run --script scripts/crawl_batch.py --job-id <job_id>
+.venv/bin/python scripts/crawl_batch.py --job-id <job_id>
 ```
+
+### Где запускать crawl
+
+- **Облачная среда Claude Code** с setup script из README репозитория: окружение `.venv` в папке скилла уже собрано, playwright в нём той же версии, что браузер, предустановленный в среде. Запуск только `.venv/bin/python scripts/crawl_batch.py …`. Не запускать через `uv run --script`: uv соберёт отдельное окружение с новейшим playwright, и браузер не найдётся («Executable doesn't exist … chromium-…»).
+- **Домен должен быть в списке разрешённых доменов среды** (Network access → Allowed domains), иначе прокси вернёт 403. Новый сайт или конкурента добавляют в настройках среды до обхода.
+- **Своя машина:** как в исходном скилле, `uv run --script scripts/crawl_batch.py --job-id <job_id>`; браузер для playwright ставится там отдельно.
 
 ## Scripts
 
 | Script | Назначение |
 |--------|-----------|
 | `doctor.py` | Проверка окружения: uv, Python, crawl4ai, playwright, config |
-| `init_job.py` | Создание job: `job_id`, `launch_params.json`, `resolved_config.json` |
+| `seed_urls.py --domain …` | Создаёт job (`job_id`, `launch_params.json`, `resolved_config.json`), если `--job-id` не передан; `init_job.py` в этой сборке нет |
 | `seed_urls.py` | Discovery URL из sitemap/robots/файла → `seed.json` (работает без crawl4ai) |
 | `crawl_batch.py` | Batch crawl через crawl4ai → `pages.ndjson`, `links.ndjson`, `summary.json` |
 | `compare_pages.py` | Табличное сравнение crawled pages по on-page сигналам |
