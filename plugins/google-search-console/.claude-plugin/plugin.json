@@ -1,0 +1,8 @@
+{
+  "name": "google-search-console",
+  "version": "1.0.0",
+  "description": "Google Search Console API (performance, URL Inspection, sitemaps) + PageSpeed Insights / CrUX. Read-only, stdlib Python.",
+  "author": {
+    "name": "Ilya Sorokin"
+  }
+}
