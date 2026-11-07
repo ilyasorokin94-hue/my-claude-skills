@@ -7,9 +7,8 @@
 **Когда:** первое знакомство с сайтом клиента, старт SEO-проекта.
 
 ```bash
-python3 scripts/init_job.py --domain https://example.com --project client-a --label site-inventory
-python3 scripts/seed_urls.py --job-id <job_id>
-uv run --script scripts/crawl_batch.py --job-id <job_id>
+python3 scripts/seed_urls.py --domain https://example.com --project client-a --label site-inventory
+.venv/bin/python scripts/crawl_batch.py --job-id <job_id>   # на своей машине: uv run --script scripts/crawl_batch.py
 ```
 
 **Что анализировать:**
@@ -30,7 +29,7 @@ uv run --script scripts/crawl_batch.py --job-id <job_id>
 **Когда:** анализ посадочных из рекламы, сравнение своих страниц с конкурентами.
 
 ```bash
-uv run --script scripts/crawl_batch.py \
+.venv/bin/python scripts/crawl_batch.py \
   --domain https://example.com \
   --label serp-shortlist \
   --url https://example.com/page-a \

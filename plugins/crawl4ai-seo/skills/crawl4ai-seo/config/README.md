@@ -25,7 +25,7 @@ cp config/defaults.example.json config/defaults.json
 }
 ```
 
-Передаются через `--params` в `init_job.py`, `seed_urls.py`, `crawl_batch.py`.
+Передаются через `--params` в `seed_urls.py` и `crawl_batch.py` (`seed_urls.py --domain` сам создаёт job).
 
 ## Проверка окружения
 
