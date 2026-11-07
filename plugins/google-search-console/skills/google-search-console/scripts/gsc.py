@@ -547,7 +547,7 @@ def cmd_inspect(args) -> int:
                 print(f"стоп на {n}-м URL: {exc}")
                 break
         time.sleep(0.15)
-    path = write_tsv(f"inspect_{slug(site)}_{date.today()}.tsv", header, out)
+    path = write_tsv(f"inspect_{slug(site)}_{time.strftime('%Y-%m-%d_%H%M%S')}.tsv", header, out)
     counts: dict = {}
     for r in out:
         counts[r[2] or r[1]] = counts.get(r[2] or r[1], 0) + 1
