@@ -9,6 +9,8 @@
 # No secrets are stored here. Yandex Cloud (Wordstat, Search API) works through
 # an API key injected by the environment's network proxy; Webmaster and Metrika
 # read YANDEX_WEBMASTER_TOKEN / YANDEX_METRIKA_TOKEN from the environment.
+# google-search-console reads GSC_SERVICE_ACCOUNT_JSON from the environment;
+# its PageSpeed/CrUX key can be injected by the proxy (X-Goog-Api-Key).
 set -eu
 
 REPO_DIR=$(cd "$(dirname "$0")" && pwd)

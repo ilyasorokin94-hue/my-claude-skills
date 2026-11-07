@@ -1,0 +1,6 @@
+config/.env
+config/*.json
+*.pem
+cache/*
+!cache/.gitkeep
+__pycache__/
