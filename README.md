@@ -10,10 +10,12 @@
 | `yandex-webmaster` | Индексация, запросы, сайтмапы, переобход | `YANDEX_WEBMASTER_TOKEN` |
 | `yandex-metrika` | Трафик и конверсии | `YANDEX_METRIKA_TOKEN` |
 | `google-search-console` | Google: запросы, страницы, индексация, sitemap, PageSpeed | `GSC_SERVICE_ACCOUNT_JSON`, ключ API (network secret) |
+| `yandex-maps-analysis` | Яндекс Карты: рост карточки клиники, разбор раз в 2 недели, отзывы, новости, фото; база знаний растёт после каждого запуска | `YANDEX_METRIKA_TOKEN` (счётчик карточки); кабинет и карточки через Chrome на ПК |
 
 Скиллы взяты из [artwist-polyakov/polyakov-claude-skills](https://github.com/artwist-polyakov/polyakov-claude-skills)
 (MIT, см. `LICENSE`) и адаптированы (кроме `google-search-console`: написан здесь, идеи взяты из
-[AgriciDaniel/claude-seo](https://github.com/AgriciDaniel/claude-seo), MIT):
+[AgriciDaniel/claude-seo](https://github.com/AgriciDaniel/claude-seo), MIT; и `yandex-maps-analysis`: написан здесь
+по опыту агентства):
 
 - `yandex-wordstat`: в режиме API-ключа ID каталога Yandex Cloud необязателен.
 
