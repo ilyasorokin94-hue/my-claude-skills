@@ -153,6 +153,10 @@ def main():
         row = {
             "nedelya": f"{w:%d.%m}–{w_end:%d.%m}",
             "karty_bez_rekl": s(lambda sf, ad: maps(sf) and ad == "bez_reklamy", "vizity"),
+            # Чистая заработанная часть: приложение + Навигатор. Веб-Карты отдельно,
+            # туда попадают замеры и проверки агентства с ПК (Z-07).
+            "karty_pn_bez_rekl": s(lambda sf, ad: sf in ("prilozhenie", "navigator") and ad == "bez_reklamy", "vizity"),
+            "veb_bez_rekl": s(lambda sf, ad: sf == "veb_karty" and ad == "bez_reklamy", "vizity"),
             "karty_rekl": s(lambda sf, ad: maps(sf) and ad == "reklama", "vizity"),
             "poisk_bez_rekl": s(lambda sf, ad: sf == "poisk" and ad == "bez_reklamy", "vizity"),
             "poisk_rekl": s(lambda sf, ad: sf == "poisk" and ad == "reklama", "vizity"),
@@ -175,7 +179,7 @@ def main():
     print("|" + "---|" * len(cols))
     for r in summary[-30:]:
         print("| " + " | ".join(str(r[c]) for c in cols) + " |")
-    print(f"\nКарты = приложение + Навигатор + веб-Карты. Роботов не вычитаем (фильтр Метрики режет живые визиты из приложения), karty_roboty = сколько из визитов Карт Метрика считает роботами. Полная таблица: {out}")
+    print(f"\nКарты = приложение + Навигатор + веб-Карты; karty_pn_bez_rekl = только приложение + Навигатор (чистая заработанная часть), veb_bez_rekl = веб-Карты (сюда попадают замеры агентства). Роботов не вычитаем (фильтр Метрики режет живые визиты из приложения), karty_roboty = сколько из визитов Карт Метрика считает роботами. Полная таблица: {out}")
 
 
 if __name__ == "__main__":
