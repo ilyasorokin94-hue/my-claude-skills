@@ -33,6 +33,7 @@ ZHURNAL = """# Журнал правок
 ### П-1 · /services/a/ · цены на странице
 Статус: выложена
 Выложено: 2026-12-01 (отметка проекта)
+Робот увидел: 2026-12-01 Яндекс
 D+14: 2026-12-15, робот был, всё на месте
 D+28:
 D+56:
@@ -50,6 +51,25 @@ D+14: снят
 D+28: снят
 D+56: снят
 Итог: сбылось
+
+### П-4 · /services/d/ · блок рассрочки
+Статус: выложена
+Пакет: ПК-2
+Выложено: 2026-12-01
+Робот увидел:
+Итог:
+
+### П-5 · /services/e/ · вопросы
+Статус: выложена
+Выложено: 2026-12-01
+Робот увидел: 2026-12-04 Яндекс; 2026-12-09 Google
+Итог:
+
+### П-6 · /services/f/ · гарантия
+Статус: выложена
+Выложено: 2026-12-01
+Робот увидел: 2026-12-30 Яндекс
+Итог:
 """
 
 
@@ -106,7 +126,7 @@ class Sroki(unittest.TestCase):
         self.pravki = sroki_zamerov.razobrat(ZHURNAL)
 
     def test_razbor(self):
-        self.assertEqual([p["nomer"] for p in self.pravki], ["П-1", "П-2", "П-3"])
+        self.assertEqual([p["nomer"] for p in self.pravki], ["П-1", "П-2", "П-3", "П-4", "П-5", "П-6"])
         self.assertEqual(self.pravki[0]["polya"]["Статус"], "выложена")
 
     def test_sroki(self):
@@ -128,6 +148,45 @@ class Sroki(unittest.TestCase):
         self.assertTrue(s["zakryta"])
         self.assertEqual(s["vylozheno"], date(2026, 10, 1))
         self.assertEqual(s["pora"], [])
+
+    def test_otkryta_s_ot_robota(self):
+        s = sroki_zamerov.sostoyanie(self.pravki[0], date(2026, 12, 15))
+        self.assertEqual(s["nachalo"], date(2026, 12, 1))
+        self.assertEqual(s["otkryta_s"], date(2026, 12, 29))
+
+    def test_bez_robota_otschet_s_14_dnya(self):
+        s = sroki_zamerov.sostoyanie(self.pravki[3], date(2026, 12, 15))
+        self.assertFalse(s["robot_vidyel"])
+        self.assertEqual(s["nachalo"], date(2026, 12, 15))
+        self.assertEqual(s["otkryta_s"], date(2027, 1, 12))  # выкладка + 42 дня
+
+    def test_dva_poiskovika_berem_pozdnyuyu_datu(self):
+        s = sroki_zamerov.sostoyanie(self.pravki[4], date(2026, 12, 15))
+        self.assertEqual(s["nachalo"], date(2026, 12, 9))
+        self.assertEqual(s["otkryta_s"], date(2027, 1, 6))
+
+    def test_pozdniy_robot_ne_derzhit_dolshe_42_dney(self):
+        s = sroki_zamerov.sostoyanie(self.pravki[5], date(2027, 1, 5))
+        self.assertEqual(s["nachalo"], date(2026, 12, 15))
+        self.assertEqual(s["otkryta_s"], date(2027, 1, 12))
+
+    def test_vyvod(self):
+        import io
+        from contextlib import redirect_stdout
+        import tempfile
+        with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as f:
+            f.write(ZHURNAL)
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            sroki_zamerov.main([f.name, "--segodnya", "2026-12-20"])
+        vyvod = buf.getvalue()
+        self.assertIn("Страницы на замере", vyvod)
+        self.assertIn("/services/d/ | открыта с 2027-01-12", vyvod)
+        self.assertIn("/services/a/ | открыта с 2026-12-29", vyvod)
+        self.assertNotIn("/services/c/ | открыта", vyvod)  # закрытая правка страницу не держит
+        self.assertIn("Робот не отмечен", vyvod)
+        self.assertIn("ждут выкладки", vyvod)
+        Path(f.name).unlink()
 
 
 if __name__ == "__main__":

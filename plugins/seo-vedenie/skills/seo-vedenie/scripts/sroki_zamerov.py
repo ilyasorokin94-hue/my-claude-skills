@@ -2,8 +2,12 @@
 """Сроки замеров по журналу правок клиники.
 
 Читает seo/zhurnal-pravok.md (формат: shablony/zhurnal-pravok.md) и
-показывает, какие правки ждут выкладки, у каких наступили D+14, D+28 и D+56
-и какие замеры ещё не вписаны.
+показывает, какие правки ждут выкладки, у каких наступили D+14, D+28 и D+56,
+какие замеры ещё не вписаны и с какой даты страница открыта для новых правок.
+
+Отсчёт замера (компас 1, «Как правки и замер живут вместе»): от даты «Робот
+увидел», но не позже 14-го дня после выкладки. Страница открыта через 28 дней
+от начала отсчёта, то есть не позже чем через 42 дня после выкладки.
 
 Примеры:
   python sroki_zamerov.py путь/к/базе/seo/zhurnal-pravok.md
@@ -16,6 +20,8 @@ from datetime import date, timedelta
 from pathlib import Path
 
 ZAMERY = (14, 28, 56)
+ZHDAT_ROBOTA = 14   # дней после выкладки, после которых отсчёт идёт без робота
+OTKRYTA_CHEREZ = 28  # дней от начала отсчёта до открытия страницы
 DATA = re.compile(r"(\d{4})-(\d{2})-(\d{2})")
 ZAGOLOVOK = re.compile(r"^###\s+(П-\d+)\s*·\s*(.*)$")
 POLE = re.compile(r"^([^:\n]{1,40}):\s*(.*)$")
@@ -29,6 +35,24 @@ def data_iz(tekst):
         return date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
     except ValueError:
         return None
+
+
+def vse_daty(tekst):
+    daty = []
+    for m in DATA.finditer(tekst or ""):
+        try:
+            daty.append(date(int(m.group(1)), int(m.group(2)), int(m.group(3))))
+        except ValueError:
+            pass
+    return daty
+
+
+def nachalo_otscheta(vylozheno, robot):
+    """Начало замера: «робот увидел» (последний поисковик), но не позже выкладки + 14 дней."""
+    predel = vylozheno + timedelta(days=ZHDAT_ROBOTA)
+    if robot:
+        return min(max(robot), predel)
+    return predel
 
 
 def razobrat(tekst):
@@ -70,14 +94,21 @@ def sostoyanie(pravka, segodnya):
         "zhdet_dney": None,
         "zamery": {},
         "pora": [],
+        "nachalo": None,
+        "robot_vidyel": False,
+        "otkryta_s": None,
     }
     if vylozheno is None:
         s_tz = data_iz(status)
         if s_tz and "тз" in status.lower():
             s["zhdet_dney"] = (segodnya - s_tz).days
         return s
+    robot = [d for d in vse_daty(p.get("Робот увидел", "")) if d >= vylozheno]
+    s["robot_vidyel"] = bool(robot)
+    s["nachalo"] = nachalo_otscheta(vylozheno, robot)
+    s["otkryta_s"] = s["nachalo"] + timedelta(days=OTKRYTA_CHEREZ)
     for d in ZAMERY:
-        srok = vylozheno + timedelta(days=d)
+        srok = s["nachalo"] + timedelta(days=d)
         vpisan = bool(p.get("D+%d" % d, "").strip())
         if vpisan:
             otmetka = "снят"
@@ -130,15 +161,32 @@ def main(argv=None):
     vperedi = [s for s in otkrytye if s["vylozheno"] is not None and not s["pora"]]
     print("\nВыложены, замер впереди: %d" % len(vperedi))
     for s in vperedi:
-        print("  %s · %s | выложено %s | %s" % (
-            s["nomer"], s["nazvanie"], s["vylozheno"].isoformat(),
+        print("  %s · %s | выложено %s | отсчёт с %s%s | %s" % (
+            s["nomer"], s["nazvanie"], s["vylozheno"].isoformat(), s["nachalo"].isoformat(),
+            "" if s["robot_vidyel"] else " (робот не отмечен)",
             "; ".join("D+%d %s" % (d, s["zamery"][d]) for d in ZAMERY)))
 
-    zanyatye = sorted({s["nazvanie"].split("·")[0].strip() for s in otkrytye
-                       if s["vylozheno"] is None or not s["zamery"].get(28, "").startswith("снят")})
-    if zanyatye:
-        print("\nСтраницы с открытой правкой (новую не заводим до замера D+28):")
-        for stranica in zanyatye:
+    bez_robota = [s for s in otkrytye if s["vylozheno"] is not None and not s["robot_vidyel"]]
+    if bez_robota:
+        print("\nРобот не отмечен (проверить индекс, IndexNow, переобход): %d" % len(bez_robota))
+        for s in bez_robota:
+            print("  %s · %s | выложено %s" % (s["nomer"], s["nazvanie"], s["vylozheno"].isoformat()))
+
+    na_zamere = {}
+    v_tz = set()
+    for s in otkrytye:
+        stranica = s["nazvanie"].split("·")[0].strip()
+        if s["vylozheno"] is None:
+            v_tz.add(stranica)
+        elif s["otkryta_s"] > segodnya:
+            na_zamere[stranica] = max(na_zamere.get(stranica, s["otkryta_s"]), s["otkryta_s"])
+    if na_zamere:
+        print("\nСтраницы на замере (до даты только ремонт; в списке «Как поднять позиции» правка с датой «не раньше»):")
+        for stranica in sorted(na_zamere):
+            print("  %s | открыта с %s" % (stranica, na_zamere[stranica].isoformat()))
+    if v_tz:
+        print("\nСтраницы с правкой в ТЗ, ждут выкладки (новое на них не дублируем):")
+        for stranica in sorted(v_tz):
             print("  " + stranica)
     return 0
 
