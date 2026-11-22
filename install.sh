@@ -39,8 +39,16 @@ done
 if [ -d "$DEST/yandex-wordstat" ]; then
     cfg="$DEST/yandex-wordstat/config"
     [ -f "$cfg/config.json" ] || printf '{\n  "auth": { "mode": "api_key" }\n}\n' > "$cfg/config.json"
-    if [ ! -f "$cfg/.env" ]; then
-        printf 'YANDEX_AI_API_KEY="injected-by-proxy"\n' > "$cfg/.env"
-        chmod 600 "$cfg/.env"
-    fi
+    # Only in the cloud. On the agency's Windows computer the real key comes
+    # from a user environment variable, and a placeholder in config/.env would
+    # override it (the scripts source .env after the environment).
+    case "$(uname -s)" in
+        MINGW*|MSYS*|CYGWIN*) ;;
+        *)
+            if [ ! -f "$cfg/.env" ]; then
+                printf 'YANDEX_AI_API_KEY="injected-by-proxy"\n' > "$cfg/.env"
+                chmod 600 "$cfg/.env"
+            fi
+            ;;
+    esac
 fi
