@@ -17,6 +17,23 @@ import tg_report  # noqa: E402
 
 TOKEN = "111111:TEST-TOKEN-NOT-REAL"
 
+# Среду нельзя очищать целиком: на Windows без SYSTEMROOT и PATH OpenSSL не
+# создаёт SSL-контекст, а `urlopen` строит его даже для адреса http://, и все
+# три теста отправки падали с «нет связи с Telegram». Поэтому системные
+# переменные оставляем, а настройки бота с самой машины убираем, чтобы тест
+# не ушёл в настоящий чат.
+SISTEMNYE_PEREMENNYE = (
+    "SYSTEMROOT", "WINDIR", "SYSTEMDRIVE", "PATH", "PATHEXT", "COMSPEC",
+    "TEMP", "TMP", "HOME", "LANG", "LC_ALL",
+)
+
+
+def sreda(**peremennye):
+    osnova = {k: v for k, v in os.environ.items()
+              if k.upper() in SISTEMNYE_PEREMENNYE}
+    osnova.update(peremennye)
+    return osnova
+
 
 class FakeTelegram(BaseHTTPRequestHandler):
     calls = []
@@ -56,9 +73,9 @@ class TgReportTest(unittest.TestCase):
         FakeTelegram.fail = False
 
     def run_main(self, argv, text="", env=None):
-        environ = {"TG_BOT_TOKEN": TOKEN, "TG_CHAT_ID": "-100123", "TG_API_BASE": self.base}
+        environ = sreda(TG_BOT_TOKEN=TOKEN, TG_CHAT_ID="-100123", TG_API_BASE=self.base)
         if env is not None:
-            environ = env
+            environ = sreda(**env)
         stdin = mock.Mock()
         stdin.buffer = io.BytesIO(text.encode("utf-8"))
         out, err = io.StringIO(), io.StringIO()

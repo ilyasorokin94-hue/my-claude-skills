@@ -65,8 +65,13 @@
 
 Рядом с профилем держи (вся папка: `skilly/yandex-karty/`, см. SKILL.md):
 
+- `audit-nastroyki.md`: настройки аудита раз в 2 недели — подписка, плитки и их
+  метки, где лежит выгрузка заявок, соседи и контрольная группа, ключевые
+  услуги, цель темпа отзывов ([audit-nastroyki.md](audit-nastroyki.md));
 - `zamer-nastroyki.md` и папку `zamery/`: настройки и результаты замера
   позиций ([zamer-nastroyki.md](zamer-nastroyki.md), модуль 07);
+- `snimki-kartochki/`: снимки публичной карточки и соседей по датам
+  ([snimok-kartochki.md](snimok-kartochki.md));
 
 - `zapiska.md`: записка следующему запуску ([zapiska.md](zapiska.md));
 - `zhurnal.md`: журнал правок ([snimok.md](snimok.md), вторая таблица);
